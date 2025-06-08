@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🎉 Pertanyaan Lucu Ulang Tahun 🎂</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Pacifico&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Quicksand', sans-serif;
+      background-color: #fff0f6;
+      overflow-x: hidden;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+      padding: 20px;
+      position: relative;
+      z-index: 10;
+    }
+    .question {
+      font-size: 24px;
+      margin-bottom: 20px;
+      font-weight: 600;
+      color: #d63384;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 18px;
+      border: none;
+      border-radius: 25px;
+      background-color: #ff69b4;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #ff85c1;
+    }
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 24px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+      max-width: 500px;
+      margin: 20px auto;
+      position: relative;
+      border: 4px solid transparent;
+      z-index: 20;
+    }
+    .card > * {
+      opacity: 0;
+      animation: fadeIn 1.2s ease-in forwards;
+    }
+    .card > *:nth-child(n) {
+      animation-delay: calc(0.2s * var(--i));
+    }
+    .card img {
+      width: 80%;
+      max-height: 200px;
+      object-fit: cover;
+      border-radius: 12px;
+      margin: 20px auto;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transition: opacity 1s ease-in-out, transform 1s ease-in-out;
+      display: block;
+      opacity: 1;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .signature {
+      margin-top: 30px;
+      font-family: 'Pacifico', cursive;
+      font-size: 20px;
+      color: #d63384;
+    }
+    .next-button {
+      margin-top: 20px;
+      padding: 12px 24px;
+      font-size: 18px;
+      border: none;
+      border-radius: 30px;
+      background-color: #845ec2;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .next-button:hover {
+      background-color: #b39cd0;
+    }
+    .floating-emoji {
+      position: fixed;
+      font-size: 24px;
+      animation: floatUp 6s linear infinite;
+      pointer-events: none;
+      z-index: 1000;
+    }
+    @keyframes floatUp {
+      0% { transform: translateY(0); opacity: 1; }
+      100% { transform: translateY(-100vh); opacity: 0; }
+    }
+    .cow {
+      position: fixed;
+      width: 180px;
+      pointer-events: none;
+      z-index: 1;
+      animation: moveCow 12s linear forwards, jump 1s ease-in-out infinite;
+    }
+    @keyframes moveCow {
+      0% { left: -200px; }
+      100% { left: 110vw; }
+    }
+    @keyframes jump {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+
+    /* === GIFT BOX === */
+    .gift-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 20px;
+    }
+    .gift-box {
+      width: 150px;
+      cursor: pointer;
+      animation: bounce 1s infinite;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-15px); }
+    }
+    .gift-surprise {
+      display: none;
+      margin-top: 20px;
+      animation: fadeIn 1s ease-in-out forwards;
+    }
+    .romantic-message {
+      display: none;
+      margin-top: 20px;
+      font-size: 20px;
+      color: #e91e63;
+      font-family: 'Pacifico', cursive;
+      animation: fadeIn 1.5s ease-in-out forwards;
+    }
+  </style>
+</head>
+<body>
+
+<audio id="bg-music" loop src="lagu.html.mp3"></audio>
+<audio id="moo-sound" src="cowmp3.mp3"></audio>
+
+<div class="container" id="container">
+  <div class="question" id="question">kamu suka kejutan gak? 🏱</div>
+  <button onclick="startWithMusic()">Iyaaa!</button>
+  <button onclick="startWithMusic()">Enggak deh 😅</button>
+</div>
+
+<script>
+const emojis = ['❤️','💖','💘','😍','😂','🎉','🥳','😆','😘','💌','😊','😎'];
+const questions = [
+  "kamu suka kejutan gak? 🏱",
+  "Kalau aku kasih hadiah, kamu terima gak nich? 🎀",
+  "Siap gak untuk baca ke halaman selanjutnya hahayy? 💘",
+  "yakin siap nih? Jawaban kamu penting banget! 😆"
+];
+
+let index = 0;
+const questionEl = document.getElementById("question");
+const container = document.getElementById("container");
+let mooPlayed = false;
+
+function startWithMusic() {
+  document.getElementById("bg-music").play();
+  createBurstHearts();
+  nextQuestion();
+  setInterval(createBurstHearts, 3000);
+  spawnCow();
+  setInterval(spawnCow, 10000);
+}
+
+function nextQuestion() {
+  index++;
+  if (index < questions.length) {
+    questionEl.textContent = questions[index];
+  } else {
+    showCard();
+  }
+}
+
+function showCard() {
+  container.innerHTML = `
+    <div class="card">
+      <h2 class="fade-in" style="--i:1">🎂 SELAMAT ULANG TAHUN! 🎉</h2>
+      <p class="fade-in" style="--i:2"><strong>🗕️ 5 Agustus 2025</strong></p>
+      <img id="slideshow" src="foto_ultah_kecil1.html.jpg" alt="Pasangan" class="fade-in" style="--i:3">
+      <p class="fade-in" style="--i:4">hai Izkhaa 💖,</p>
+      <p class="fade-in" style="--i:5">di hari spesial ini, aku ingin bilang sesuatu yang penting banget!!!!</p>
+      <h3 class="fade-in" style="--i:6">SELAMAT ULANG TAHUN YANG KE-22 YAA SAYAANGG! 🎈</h3>
+      <p class="fade-in" style="--i:7">kamu makin cantik, pintar, dan pastinya jadi orang yang lebih baik setiap harinya.</p>
+      <p class="fade-in" style="--i:8">aku selalu mendoakan kamu dan support kamu terus!!!.</p>
+      <p class="signature fade-in" style="--i:9">— dari aku yang selalu sayang kamu 💕</p>
+      <button class="next-button fade-in" style="--i:10" onclick="startGame()">Lanjut yuk! 👉</button>
+    </div>
+  `;
+  startConfetti();
+  startSlideshow();
+}
+
+function startGame() {
+  container.innerHTML = `
+    <div class="card">
+      <h2>🎮 Mini Game Puzzle</h2>
+      <p>Pilih jumlah yang tepat agar totalnya sama dengan <strong>10</strong>!</p>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;" id="game-options">
+        <button onclick="selectNumber(this, 3)">3</button>
+        <button onclick="selectNumber(this, 5)">5</button>
+        <button onclick="selectNumber(this, 2)">2</button>
+        <button onclick="selectNumber(this, 4)">4</button>
+        <button onclick="selectNumber(this, 6)">6</button>
+      </div>
+      <p id="current-total">Total kamu: 0</p>
+    </div>
+  `;
+  selectedTotal = 0;
+}
+
+let selectedTotal = 0;
+
+function selectNumber(btn, value) {
+  selectedTotal += value;
+  btn.disabled = true;
+  document.getElementById("current-total").textContent = `Total kamu: ${selectedTotal}`;
+  if (selectedTotal === 10) {
+    setTimeout(() => {
+      alert("Selamat telah berhasil menyelesaikan gamenya, selanjutnya adalah kuis 🎁");
+      startQuiz();
+    }, 300);
+  } else if (selectedTotal > 10) {
+    setTimeout(() => alert("Oops, total kamu lebih dari 10! Coba lagi ya."), 200);
+  }
+}
+
+function startQuiz() {
+  container.innerHTML = `<div class="card" id="quiz-card"></div>`;
+  showQuestion(0);
+}
+
+const quizQuestions = [
+  {
+    question: "Apa makanan kesukaan aku?? 🍜",
+    options: ["Ramen", "Daging", "Nasi Padang"],
+    correct: "Daging"
+  },
+  {
+    question: "Apa sih minuman favorit aku?? ☕️",
+    options: ["Soda", "Minuman Manis", "Kopi"],
+    correct: "Kopi"
+  },
+  {
+    question: "Di tanggal berapa dan bulan apa ulang tahun aku? 📅",
+    input: true,
+    correct: "29 september"
+  }
+];
+
+let currentQuizIndex = 0;
+
+function showQuestion(index) {
+  const card = document.getElementById("quiz-card");
+  const q = quizQuestions[index];
+  if (q.input) {
+    card.innerHTML = `
+      <h2>${q.question}</h2>
+      <input type="text" id="user-input" placeholder="Tulis jawabanmu di sini..." style="padding:10px; border-radius:10px; border:1px solid #ccc; width:80%; margin:10px 0;">
+      <br>
+      <button onclick="checkAnswer()">Kirim</button>
+      <p id="feedback" style="font-size:18px; margin-top:10px;"></p>
+    `;
+  } else {
+    card.innerHTML = `
+      <h2>${q.question}</h2>
+      ${q.options.map(opt => `<button onclick="checkAnswer('${opt}')">${opt}</button>`).join('')}
+      <p id="feedback" style="font-size:18px; margin-top:10px;"></p>
+    `;
+  }
+}
+
+function checkAnswer(selected = null) {
+  const q = quizQuestions[currentQuizIndex];
+  let userAnswer = selected;
+  if (q.input) {
+    userAnswer = document.getElementById("user-input").value.trim().toLowerCase();
+    if (!userAnswer) return;
+  }
+  const isCorrect = userAnswer.toLowerCase() === q.correct.toLowerCase();
+  const feedback = document.getElementById("feedback");
+  if (isCorrect) {
+    feedback.innerHTML = "❤️ Jawaban kamu benar!";
+    setTimeout(() => {
+      currentQuizIndex++;
+      if (currentQuizIndex < quizQuestions.length) {
+        showQuestion(currentQuizIndex);
+      } else {
+        showGiftBox();
+      }
+    }, 1000);
+  } else {
+    feedback.innerHTML = "❌ Wah, coba lagi ya!";
+  }
+}
+
+function showGiftBox() {
+  container.innerHTML = `
+    <div class="card">
+      <h2>🎁 Klik hadiahmu di bawah ini! 🎁</h2>
+      <div class="gift-container">
+        <img src="kado1.png" alt="Gift Box" class="gift-box" onclick="openGift(this)">
+        <div class="romantic-message" id="romantic-message">Aku sayang kamu lebih dari apapun 💖 Terima kasih udah selalu hadir di hidup aku 💖!</div>
+      </div>
+    </div>
+  `;
+}
+
+function openGift(img) {
+  img.src = "kado2.png";
+  document.getElementById("romantic-message").style.display = "block";
+  startConfetti();
+}
+
+function startSlideshow() {
+  const slideshowImages = ["foto_ultah_kecil1.html.jpg", "foto2.html.jpg", "foto3.html.jpg", "foto4.html.jpg"];
+  let index = 0;
+  const img = document.getElementById("slideshow");
+  setInterval(() => {
+    img.style.opacity = 0;
+    img.style.transform = "scale(0.95)";
+    setTimeout(() => {
+      index = (index + 1) % slideshowImages.length;
+      img.src = slideshowImages[index];
+      img.style.opacity = 1;
+      img.style.transform = "scale(1)";
+    }, 500);
+  }, 5000);
+}
+
+function startConfetti() {
+  const duration = 8000;
+  const animationEnd = Date.now() + duration;
+  const colors = ['#bb0000', '#ffffff', '#ff69b4', '#845ec2'];
+  (function frame() {
+    confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors });
+    confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors });
+    if (Date.now() < animationEnd) requestAnimationFrame(frame);
+  })();
+}
+
+function createBurstHearts() {
+  const count = 20;
+  for (let i = 0; i < count; i++) {
+    const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+    const span = document.createElement('span');
+    span.className = 'floating-emoji';
+    span.style.left = Math.random() * window.innerWidth + 'px';
+    span.style.top = window.innerHeight + 'px';
+    span.textContent = emoji;
+    span.style.fontSize = `${10 + Math.random() * 20}px`;
+    span.style.animationDuration = `${4 + Math.random() * 3}s`;
+    document.body.appendChild(span);
+    setTimeout(() => span.remove(), 7000);
+  }
+}
+
+function spawnCow() {
+  const cow = document.createElement("img");
+  cow.src = "sapi.png.png";
+  cow.className = "cow";
+  cow.style.top = `${Math.floor(Math.random() * 60) + 10}vh`;
+  document.body.appendChild(cow);
+  if (!mooPlayed) {
+    mooPlayed = true;
+    setTimeout(() => {
+      document.getElementById("moo-sound").play();
+    }, 4000);
+  }
+  setTimeout(() => cow.remove(), 13000);
+}
+</script>
+</body>
+</html>
